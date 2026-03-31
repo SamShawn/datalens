@@ -66,11 +66,6 @@
 
     <!-- 主内容区 -->
     <main class="main">
-      <!-- 首页/仪表盘 -->
-      <section v-if="currentTab === 'dashboard'" class="section">
-        <DashboardSection />
-      </section>
-
       <!-- 数据上传 -->
       <section v-if="currentTab === 'upload'" class="section">
         <UploadSection @file-loaded="handleFileLoaded" />
@@ -96,18 +91,17 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import DashboardSection from './components/DashboardSection.vue'
 import UploadSection from './components/UploadSection.vue'
 import DataViewSection from './components/DataViewSection.vue'
 import AnalyzeSection from './components/AnalyzeSection.vue'
 import VisualizeSection from './components/VisualizeSection.vue'
 
 // 当前激活的标签页
-const currentTab = ref('dashboard')
+const currentTab = ref('upload')
 const currentFile = ref('')
 
 // 主题状态
-const theme = ref('dark')
+const theme = ref('light')
 
 // 切换主题
 const toggleTheme = () => {
@@ -130,11 +124,6 @@ onMounted(() => {
 
 // 导航标签
 const tabs = [
-  {
-    id: 'dashboard',
-    name: '仪表盘',
-    icon: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>'
-  },
   {
     id: 'upload',
     name: '数据上传',
