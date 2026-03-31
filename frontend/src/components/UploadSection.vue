@@ -344,7 +344,7 @@ const proceedToData = () => {
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   color: var(--color-text-primary);
 }
 

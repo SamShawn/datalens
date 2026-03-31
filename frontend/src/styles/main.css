@@ -5,7 +5,7 @@
 
 /* -------------------- CSS Variables -------------------- */
 :root {
-  /* 色彩系统 - 炭灰与琥珀金 */
+  /* 色彩系统 - 炭灰与琥珀金 (Dark Mode) */
   --color-bg-primary: #0D0D0D;
   --color-bg-secondary: #1A1A1A;
   --color-bg-tertiary: #252525;
@@ -24,6 +24,12 @@
 
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* Header 背景 */
+  --header-bg: rgba(13, 13, 13, 0.8);
+
+  /* 悬停效果 */
+  --hover-bg: rgba(255, 255, 255, 0.05);
 
   /* 渐变 */
   --gradient-gold: linear-gradient(135deg, var(--color-accent-gold) 0%, var(--color-accent-gold-dark) 100%);
@@ -60,6 +66,42 @@
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
 }
 
+/* Light Mode Theme */
+[data-theme="light"] {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary: #F3F4F6;
+  --color-bg-elevated: #FFFFFF;
+
+  --color-accent-gold: #D4890F;
+  --color-accent-gold-light: #F5A623;
+  --color-accent-gold-dark: #B4730C;
+  --color-accent-teal: #0D9488;
+  --color-accent-red: #DC2626;
+  --color-accent-blue: #2563EB;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #9CA3AF;
+
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.15);
+
+  /* Header 背景 */
+  --header-bg: rgba(250, 251, 252, 0.8);
+
+  /* 悬停效果 */
+  --hover-bg: rgba(0, 0, 0, 0.05);
+
+  --gradient-gold: linear-gradient(135deg, var(--color-accent-gold) 0%, var(--color-accent-gold-dark) 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(0,0,0,0.03) 0%, transparent 100%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-glow-gold: 0 0 20px rgba(212, 137, 15, 0.15);
+}
+
 /* -------------------- Reset & Base -------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -82,7 +124,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 背景纹理 */
+/* 背景纹理 - Dark Mode */
 body::before {
   content: '';
   position: fixed;
@@ -95,6 +137,13 @@ body::before {
     radial-gradient(ellipse at 80% 80%, rgba(45, 212, 191, 0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
+}
+
+/* 背景纹理 - Light Mode */
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(212, 137, 15, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(13, 148, 136, 0.03) 0%, transparent 50%);
 }
 
 /* -------------------- Typography -------------------- */
@@ -195,7 +244,7 @@ p {
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   color: var(--color-text-primary);
 }
 

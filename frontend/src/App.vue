@@ -34,6 +34,23 @@
         </nav>
 
         <div class="header-actions">
+          <!-- 主题切换按钮 -->
+          <button
+            class="icon-button theme-toggle"
+            :title="theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'"
+            @click="toggleTheme"
+          >
+            <!-- Sun icon (显示 when dark) -->
+            <svg v-if="theme === 'dark'" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <!-- Moon icon (显示 when light) -->
+            <svg v-else width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M17.5 10.5a7.5 7.5 0 01-10-7c-1.5 0-3-.5-4-1.5a7.5 7.5 0 1014 8.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
           <button class="icon-button" title="通知">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M15 6.667a5 5 0 00-10 0c0 5.833-2.5 7.5-2.5 7.5h15s-2.5-1.667-2.5-7.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -78,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import DashboardSection from './components/DashboardSection.vue'
 import UploadSection from './components/UploadSection.vue'
 import DataViewSection from './components/DataViewSection.vue'
@@ -88,6 +105,28 @@ import VisualizeSection from './components/VisualizeSection.vue'
 // 当前激活的标签页
 const currentTab = ref('dashboard')
 const currentFile = ref('')
+
+// 主题状态
+const theme = ref('dark')
+
+// 切换主题
+const toggleTheme = () => {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark'
+}
+
+// 监听主题变化，应用到 document
+watch(theme, (newTheme) => {
+  document.documentElement.setAttribute('data-theme', newTheme)
+  localStorage.setItem('datalens-theme', newTheme)
+}, { immediate: true })
+
+// 初始化主题（从 localStorage 读取）
+onMounted(() => {
+  const savedTheme = localStorage.getItem('datalens-theme')
+  if (savedTheme) {
+    theme.value = savedTheme
+  }
+})
 
 // 导航标签
 const tabs = [
@@ -134,7 +173,7 @@ const handleFileLoaded = (filename) => {
 
 /* Header */
 .header {
-  background: rgba(13, 13, 13, 0.8);
+  background: var(--header-bg);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
   padding: 12px 0;
@@ -198,7 +237,7 @@ const handleFileLoaded = (filename) => {
 }
 
 .nav-button:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   color: var(--color-text-primary);
 }
 
@@ -255,6 +294,19 @@ const handleFileLoaded = (filename) => {
 .icon-button:hover {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
+}
+
+.theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle svg {
+  transition: transform var(--transition-base);
+}
+
+.theme-toggle:hover svg {
+  transform: rotate(15deg);
 }
 
 .user-avatar {
