@@ -1,112 +1,128 @@
 <template>
   <div class="upload-section">
-    <div class="container">
-      <h2 class="title">上传数据文件</h2>
-      <p class="subtitle">支持 CSV 和 Excel 格式，最大 16MB</p>
+    <div class="page-header">
+      <h2>数据上传</h2>
+      <p>支持 CSV 和 Excel 格式，最大 16MB</p>
+    </div>
 
-      <!-- 拖拽上传区域 -->
-      <div
-        class="upload-zone"
-        :class="{ 'dragover': isDragging, 'uploading': uploading }"
-        @dragover.prevent="handleDragOver"
-        @dragleave.prevent="handleDragLeave"
-        @drop.prevent="handleDrop"
-      >
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".csv,.xlsx,.xls"
-          @change="handleFileSelect"
-          style="display: none"
-        />
+    <!-- 拖拽上传区域 -->
+    <div
+      class="upload-zone"
+      :class="{ 'dragover': isDragging, 'uploading': uploading }"
+      @dragover.prevent="handleDragOver"
+      @dragleave.prevent="handleDragLeave"
+      @drop.prevent="handleDrop"
+    >
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".csv,.xlsx,.xls"
+        @change="handleFileSelect"
+        style="display: none"
+      />
 
-        <div v-if="!uploading" class="upload-content">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-            <path d="M32 8V56M32 8L18 22M32 8L46 22" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="8" y="40" width="48" height="20" rx="4" stroke="#6366f1" stroke-width="3"/>
+      <div v-if="!uploading" class="upload-content">
+        <div class="upload-icon">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <path d="M28 6v36M28 6l-12 12M28 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="6" y="38" width="44" height="14" rx="2" stroke="currentColor" stroke-width="2.5"/>
           </svg>
-          <p class="upload-text">拖拽文件到此处或点击上传</p>
-          <button class="upload-button" @click="$refs.fileInput.click()">
-            选择文件
-          </button>
         </div>
+        <p class="upload-text">拖拽文件到此处或点击上传</p>
+        <button class="btn btn-primary" @click="$refs.fileInput.click()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          选择文件
+        </button>
+      </div>
 
-        <div v-else class="uploading-content">
-          <div class="spinner"></div>
-          <p>正在上传文件...</p>
+      <div v-else class="uploading-content">
+        <div class="spinner"></div>
+        <p>正在上传文件...</p>
+      </div>
+    </div>
+
+    <!-- 文件信息 -->
+    <div v-if="fileInfo" class="file-info card">
+      <h3>文件信息</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label class="label">文件名</label>
+          <span class="info-value">{{ fileInfo.filename }}</span>
+        </div>
+        <div class="info-item">
+          <label class="label">数据行数</label>
+          <span class="info-value tabular-nums">{{ fileInfo.rows.toLocaleString() }} 行</span>
+        </div>
+        <div class="info-item">
+          <label class="label">列数</label>
+          <span class="info-value tabular-nums">{{ fileInfo.columns }} 列</span>
         </div>
       </div>
 
-      <!-- 文件信息 -->
-      <div v-if="fileInfo" class="file-info">
-        <h3>文件信息</h3>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>文件名</label>
-            <span>{{ fileInfo.filename }}</span>
-          </div>
-          <div class="info-item">
-            <label>数据行数</label>
-            <span>{{ fileInfo.rows }} 行</span>
-          </div>
-          <div class="info-item">
-            <label>列数</label>
-            <span>{{ fileInfo.columns }} 列</span>
-          </div>
-        </div>
-
-        <div class="columns-list">
-          <h4>列名</h4>
-          <div class="columns-tags">
-            <span v-for="(col, index) in fileInfo.column_names" :key="index" class="column-tag">
-              {{ col }}
-            </span>
-          </div>
-        </div>
-
-        <div class="data-preview">
-          <h4>数据预览（前10行）</h4>
-          <div class="table-container">
-            <table class="preview-table">
-              <thead>
-                <tr>
-                  <th v-for="col in fileInfo.column_names" :key="col">{{ col }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, rowIndex) in fileInfo.preview" :key="rowIndex">
-                  <td v-for="col in fileInfo.column_names" :key="col">
-                    {{ formatCellValue(row[col]) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="primary-button" @click="proceedToData">
-            查看完整数据
-          </button>
+      <div class="columns-list">
+        <h4>列名</h4>
+        <div class="columns-tags">
+          <span v-for="(col, index) in fileInfo.column_names" :key="index" class="column-tag">
+            {{ col }}
+          </span>
         </div>
       </div>
 
-      <!-- 已上传文件列表 -->
-      <div class="file-list">
-        <h3>已上传文件</h3>
-        <div v-if="uploadedFiles.length > 0" class="files">
-          <div v-for="file in uploadedFiles" :key="file.filename" class="file-item">
-            <div class="file-item-info">
+      <div class="data-preview">
+        <h4>数据预览（前10行）</h4>
+        <div class="table-container">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th v-for="col in fileInfo.column_names" :key="col">{{ col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rowIndex) in fileInfo.preview" :key="rowIndex">
+                <td v-for="col in fileInfo.column_names" :key="col">
+                  {{ formatCellValue(row[col]) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" @click="proceedToData">
+          查看完整数据
+        </button>
+      </div>
+    </div>
+
+    <!-- 已上传文件列表 -->
+    <div class="file-list card">
+      <h3>已上传文件</h3>
+      <div v-if="uploadedFiles.length > 0" class="files">
+        <div v-for="file in uploadedFiles" :key="file.filename" class="file-item">
+          <div class="file-item-info">
+            <div class="file-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 4h8l4 4v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 4v4h4" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="file-details">
               <span class="file-name">{{ file.filename }}</span>
               <span class="file-size">{{ formatFileSize(file.size) }}</span>
             </div>
-            <button class="delete-button" @click="deleteFile(file.filename)">
-              删除
-            </button>
           </div>
+          <button class="btn btn-ghost delete-button" @click="deleteFile(file.filename)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4h12M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M12 4v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            删除
+          </button>
         </div>
-        <p v-else class="empty-message">暂无已上传文件</p>
       </div>
+      <p v-else class="empty-message">暂无已上传文件</p>
     </div>
   </div>
 </template>
@@ -235,178 +251,189 @@ const proceedToData = () => {
 
 <style scoped>
 .upload-section {
-  padding: 40px 0;
-}
-
-.container {
   max-width: 1000px;
   margin: 0 auto;
 }
 
-.title {
-  font-size: 32px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 8px;
+.page-header {
+  margin-bottom: var(--space-xl);
 }
 
-.subtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 32px;
+.page-header h2 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.page-header p {
+  color: var(--color-text-muted);
+  font-size: 14px;
 }
 
 /* 上传区域 */
 .upload-zone {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-xl);
   padding: 60px 40px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
-  transition: all 0.3s ease;
-  margin-bottom: 32px;
+  background: var(--color-bg-secondary);
+  transition: all var(--transition-base);
+  margin-bottom: var(--space-xl);
 }
 
 .upload-zone.dragover {
-  border-color: #6366f1;
-  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--color-accent-gold);
+  background: rgba(245, 166, 35, 0.05);
 }
 
 .upload-zone.uploading {
   pointer-events: none;
+  opacity: 0.7;
 }
 
-.upload-content svg {
-  margin-bottom: 20px;
-  opacity: 0.8;
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.upload-icon {
+  color: var(--color-text-muted);
+  transition: color var(--transition-base);
+}
+
+.upload-zone:hover .upload-icon,
+.upload-zone.dragover .upload-icon {
+  color: var(--color-accent-gold);
 }
 
 .upload-text {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 24px;
-}
-
-.upload-button {
-  padding: 12px 32px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  border: none;
-  border-radius: 8px;
-  color: white;
   font-size: 16px;
-  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all var(--transition-base);
 }
 
-.upload-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+.btn-primary {
+  background: var(--gradient-gold);
+  color: var(--color-bg-primary);
 }
 
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+/* 上传中状态 */
 .uploading-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-md);
+  color: var(--color-text-muted);
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #6366f1;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent-gold);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* 文件信息 */
+/* 文件信息卡片 */
 .file-info {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-xl);
 }
 
 .file-info h3 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: white;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-lg);
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
-.info-item label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-item span {
-  font-size: 16px;
+.info-value {
+  font-size: 15px;
   font-weight: 500;
-  color: white;
+  color: var(--color-text-primary);
 }
 
+/* 列名标签 */
 .columns-list {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-lg);
 }
 
-.columns-list h4 {
-  font-size: 14px;
+.columns-list h4,
+.data-preview h4 {
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
 }
 
 .columns-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .column-tag {
   padding: 6px 12px;
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 6px;
-  color: #a5b4fc;
-  font-size: 13px;
+  background: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-gold-light);
+  font-size: 12px;
   font-weight: 500;
 }
 
-.data-preview {
-  margin-bottom: 24px;
-}
-
-.data-preview h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 12px;
-}
-
+/* 数据预览表格 */
 .table-container {
   overflow-x: auto;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
 }
 
 .preview-table {
@@ -416,18 +443,24 @@ const proceedToData = () => {
 }
 
 .preview-table th {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  padding: 10px;
+  background: rgba(245, 166, 35, 0.1);
+  color: var(--color-accent-gold);
+  padding: 12px;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .preview-table td {
-  padding: 10px;
-  color: rgba(255, 255, 255, 0.8);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-table tr:last-child td {
+  border-bottom: none;
 }
 
 .preview-table tr:hover td {
@@ -435,95 +468,87 @@ const proceedToData = () => {
 }
 
 .actions {
-  display: flex;
-  gap: 12px;
-}
-
-.primary-button {
-  padding: 12px 32px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.primary-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  margin-top: var(--space-lg);
 }
 
 /* 文件列表 */
-.file-list {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 24px;
-}
-
 .file-list h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: white;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 
 .files {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .file-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  transition: background 0.2s ease;
+  padding: var(--space-md);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
 .file-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-bg-elevated);
 }
 
 .file-item-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-md);
+}
+
+.file-icon {
+  color: var(--color-text-muted);
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .file-name {
-  color: white;
+  color: var(--color-text-primary);
+  font-size: 14px;
   font-weight: 500;
 }
 
 .file-size {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
 .delete-button {
-  padding: 6px 16px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 6px;
-  color: #fca5a5;
+  color: var(--color-accent-red);
   font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .delete-button:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .empty-message {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-text-muted);
   text-align: center;
-  padding: 20px;
+  padding: var(--space-xl);
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-zone {
+    padding: 40px 20px;
+  }
 }
 </style>

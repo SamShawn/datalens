@@ -1,19 +1,29 @@
 <template>
   <div class="data-view-section">
     <div v-if="!filename" class="no-file">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-        <path d="M8 8H56C58.2091 8 60 9.79086 60 12V52C60 54.2091 58.2091 56 56 56H8C5.79086 56 4 54.2091 4 52V12C4 9.79086 5.79086 8 8 8Z" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
-        <path d="M16 24H48M16 36H40M16 48H32" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round"/>
-      </svg>
+      <div class="no-file-icon">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 24h24M20 32h24M20 40h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
       <p>请先上传数据文件</p>
     </div>
 
     <div v-else class="data-view">
       <!-- 文件信息头部 -->
-      <div class="data-header">
+      <div class="data-header card">
         <div class="file-info">
-          <h2>{{ filename }}</h2>
-          <span class="meta">{{ totalRows }} 行 × {{ columns.length }} 列</span>
+          <div class="file-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h10l4 4v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M14 4v4h4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div>
+            <h2>{{ filename }}</h2>
+            <span class="meta">{{ totalRows.toLocaleString() }} 行 × {{ columns.length }} 列</span>
+          </div>
         </div>
         <div class="actions">
           <select v-model="perPage" class="per-page-select">
@@ -21,7 +31,10 @@
             <option value="50">50 行/页</option>
             <option value="100">100 行/页</option>
           </select>
-          <button class="export-button" @click="exportData">
+          <button class="btn btn-primary" @click="exportData">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M14 10v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3M11 5L8 2M8 2L5 5M8 2v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             导出数据
           </button>
         </div>
@@ -36,7 +49,7 @@
       />
 
       <!-- 数据表格 -->
-      <div class="table-container">
+      <div class="table-container card">
         <table class="data-table">
           <thead>
             <tr>
@@ -56,7 +69,9 @@
               </td>
             </tr>
             <tr v-else v-for="(row, index) in data" :key="index">
-              <td v-for="col in columns" :key="col">{{ formatCellValue(row[col]) }}</td>
+              <td v-for="col in columns" :key="col" :class="{ 'numeric': columnTypes[col] === 'number' }">
+                {{ formatCellValue(row[col]) }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -65,19 +80,29 @@
       <!-- 分页 -->
       <div v-if="totalPages > 1" class="pagination">
         <button
-          class="page-button"
+          class="btn btn-secondary page-button"
           :disabled="currentPage === 1"
           @click="changePage(currentPage - 1)"
         >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           上一页
         </button>
-        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        <span class="page-info">
+          <span class="page-current">{{ currentPage }}</span>
+          <span class="page-separator">/</span>
+          <span class="page-total">{{ totalPages }}</span>
+        </span>
         <button
-          class="page-button"
+          class="btn btn-secondary page-button"
           :disabled="currentPage === totalPages"
           @click="changePage(currentPage + 1)"
         >
           下一页
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -177,7 +202,7 @@ const changePage = (page) => {
 const formatCellValue = (value) => {
   if (value === null || value === undefined) return '-'
   if (typeof value === 'number') {
-    return Number.isInteger(value) ? value : value.toFixed(2)
+    return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(2)
   }
   return String(value)
 }
@@ -210,7 +235,7 @@ const exportData = async () => {
 
 <style scoped>
 .data-view-section {
-  padding: 40px 0;
+  min-height: calc(100vh - 120px);
 }
 
 .no-file {
@@ -218,15 +243,19 @@ const exportData = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--space-md);
   padding: 100px 0;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-text-muted);
+}
+
+.no-file-icon {
+  opacity: 0.3;
 }
 
 .data-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-lg);
 }
 
 /* 数据头部 */
@@ -234,127 +263,135 @@ const exportData = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
 }
 
 .file-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-md);
+}
+
+.file-icon {
+  color: var(--color-accent-gold);
 }
 
 .file-info h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 2px;
 }
 
 .file-info .meta {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: 13px;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
+}
+
+/* 按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-primary {
+  background: var(--gradient-gold);
+  color: var(--color-bg-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.btn-secondary {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-bg-elevated);
 }
 
 .per-page-select {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
+  padding: 8px 32px 8px 12px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 13px;
   cursor: pointer;
 }
 
 .per-page-select option {
-  background: #1a1a2e;
-}
-
-.export-button {
-  padding: 10px 20px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.export-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  background: var(--color-bg-secondary);
 }
 
 /* 表格容器 */
 .table-container {
   overflow-x: auto;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 4px;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .data-table th {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  padding: 12px 16px;
+  background: rgba(245, 166, 35, 0.1);
+  color: var(--color-accent-gold);
+  padding: 14px 16px;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
 }
 
 .data-table td {
   padding: 12px 16px;
-  color: rgba(255, 255, 255, 0.8);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table td.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
 }
 
 .data-table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.loading-cell {
-  padding: 60px 20px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #6366f1;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
+.loading-cell,
 .empty-cell {
   padding: 60px 20px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
 }
 
 /* 分页 */
@@ -362,33 +399,53 @@ const exportData = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 20px;
+  gap: var(--space-md);
 }
 
 .page-button {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.page-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  gap: var(--space-xs);
 }
 
 .page-info {
-  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--color-text-secondary);
   font-size: 14px;
-  font-weight: 500;
+}
+
+.page-current {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.page-separator {
+  color: var(--color-text-muted);
+}
+
+.page-total {
+  color: var(--color-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .data-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .per-page-select {
+    flex: 1;
+  }
+
+  .btn-primary {
+    flex: 1;
+  }
 }
 </style>
