@@ -20,6 +20,23 @@ asyncio.set_event_loop(_loop)
 # Connect to Prisma at startup
 _loop.run_until_complete(db.connect())
 
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return {'error': 'Unauthorized'}, 401
+        try:
+            payload = jwt.decode(token, os.getenv('JWT_SECRET', 'dev-secret'), algorithms=['HS256'])
+            request.user_id = payload['user_id']
+        except jwt.ExpiredSignatureError:
+            return {'error': 'Token expired'}, 401
+        except jwt.InvalidTokenError:
+            return {'error': 'Invalid token'}, 401
+        return f(*args, **kwargs)
+    return decorated
+
+
 @app.route('/health')
 def health():
     return {'status': 'ok'}
@@ -96,6 +113,45 @@ def login():
         },
         'token': token
     }
+
+@app.route('/api/portfolio', methods=['GET'])
+@require_auth
+def get_portfolio():
+    holdings = _loop.run_until_complete(db.holding.find_many(where={'userId': request.user_id}))
+    return {'holdings': [h.model_dump(mode='json') for h in holdings]}
+
+@app.route('/api/portfolio', methods=['POST'])
+@require_auth
+def add_holding():
+    data = request.json
+    holding = _loop.run_until_complete(db.holding.create(
+        data={
+            'userId': request.user_id,
+            'symbol': data['symbol'].upper(),
+            'quantity': float(data['quantity']),
+            'avgCost': float(data['avgCost'])
+        }
+    ))
+    return {'holding': holding.model_dump(mode='json')}
+
+@app.route('/api/portfolio/<holding_id>', methods=['PUT'])
+@require_auth
+def update_holding(holding_id):
+    data = request.json
+    holding = _loop.run_until_complete(db.holding.update(
+        where={'id': holding_id, 'userId': request.user_id},
+        data={
+            'quantity': float(data.get('quantity')),
+            'avgCost': float(data.get('avgCost'))
+        }
+    ))
+    return {'holding': holding.model_dump(mode='json')}
+
+@app.route('/api/portfolio/<holding_id>', methods=['DELETE'])
+@require_auth
+def delete_holding(holding_id):
+    _loop.run_until_complete(db.holding.delete(where={'id': holding_id, 'userId': request.user_id}))
+    return {'success': True}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True, use_reloader=False)
