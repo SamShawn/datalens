@@ -25,3 +25,49 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.lux-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-text-secondary);
+}
+
+.timeframe-selector {
+  display: flex;
+  gap: 4px;
+}
+
+.tf-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.tf-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.tf-btn.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+}
