@@ -153,5 +153,32 @@ def delete_holding(holding_id):
     _loop.run_until_complete(db.holding.delete(where={'id': holding_id, 'userId': request.user_id}))
     return {'success': True}
 
+@app.route('/api/watchlist', methods=['GET'])
+@require_auth
+def get_watchlist():
+    items = _loop.run_until_complete(db.watchlist.find_many(where={'userId': request.user_id}))
+    return {'watchlist': [w.symbol for w in items]}
+
+@app.route('/api/watchlist', methods=['POST'])
+@require_auth
+def add_to_watchlist():
+    data = request.json
+    symbol = data['symbol'].upper()
+    try:
+        item = _loop.run_until_complete(db.watchlist.create(
+            data={'userId': request.user_id, 'symbol': symbol}
+        ))
+        return {'watchlist': item.model_dump(mode='json')}, 201
+    except Exception:
+        return {'error': 'Symbol already in watchlist'}, 400
+
+@app.route('/api/watchlist/<symbol>', methods=['DELETE'])
+@require_auth
+def remove_from_watchlist(symbol):
+    _loop.run_until_complete(db.watchlist.delete_many(
+        where={'userId': request.user_id, 'symbol': symbol.upper()}
+    ))
+    return {'success': True}
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True, use_reloader=False)
