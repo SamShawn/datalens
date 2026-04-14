@@ -92,6 +92,7 @@ export function WatchlistPanel({ selectedSymbol, onSelectSymbol }: WatchlistPane
               key={symbol}
               symbol={symbol}
               onClick={() => onSelectSymbol(symbol)}
+              onRemove={() => removeSymbol(symbol)}
               isActive={symbol === selectedSymbol}
             />
           ))

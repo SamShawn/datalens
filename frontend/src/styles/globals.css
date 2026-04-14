@@ -335,6 +335,25 @@ select:focus {
   color: var(--color-negative);
 }
 
+.watchlist-item .remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  padding: 4px 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.watchlist-item:hover .remove-btn {
+  opacity: 1;
+}
+
+.watchlist-item .remove-btn:hover {
+  color: var(--color-negative);
+}
+
 .portfolio-panel {
   display: flex;
   flex-direction: column;
